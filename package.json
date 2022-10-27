@@ -1,30 +1,50 @@
 {
-  "name": "connect",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "wordception",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "start": "ts-node src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepare": "husky install",
+    "deploy": "vercel build && vercel",
+    "build": "rimraf api && rimraf public && nx run backend:build && nx run frontend:build",
+    "start": "nx run-many --target dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@apollo/server": "^4.0.3",
-    "@graphql-tools/load-files": "^6.6.1",
-    "@graphql-tools/merge": "^8.3.6",
-    "@graphql-tools/schema": "^9.0.4",
-    "body-parser": "^1.20.1",
-    "express": "^4.18.2",
-    "graphql": "^16.6.0",
-    "graphql-ws": "^5.11.2",
-    "ws": "^8.10.0"
+  "private": true,
+  "dependencies": {},
+  "engines": {
+    "node": ">=16.14"
+  },
+  "lint-staged": {
+    "*.{js,ts,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss}": "stylelint",
+    "*.svelte": "svelte-check"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "@nrwl/nx-cloud": "latest",
     "@types/node": "^18.11.5",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
+    "@vercel/node": "^2.5.26",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.3.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "nodemon": "^2.0.20",
+    "nx": "15.0.3",
+    "prettier": "^2.6.2",
+    "rimraf": "^3.0.2",
+    "stylelint": "^14.14.0",
+    "stylelint-config-prettier": "^9.0.3",
+    "stylelint-config-standard": "^29.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.4",
     "vercel": "^28.4.12"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

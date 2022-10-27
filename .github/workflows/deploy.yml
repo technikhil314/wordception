@@ -1,0 +1,51 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Deploy to wordception.vercel.app
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+
+      - name: Install
+        run: |
+          yarn --frozen-lockfile
+
+      - name: Lint
+        run: |
+          yarn eslint --ext .ts,.js,.mjs,.cjs . --fix
+          yarn prettier --write "./**/*.(ts|js|cjs|mjs)"
+          yarn svelte-check
+
+      - name: Build
+        run: |
+          yarn build
+
+      - name: Deploy to prod
+        uses: amondnet/vercel-action@v20
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: '--prod'
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to preview
+        uses: amondnet/vercel-action@v20
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
