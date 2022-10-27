@@ -1,25 +1,8 @@
 {
-    "version": 2,
-    "buildCommand": "yarn nx affected backend:build",
-    "builds": [
+    "rewrites": [
         {
-            "src": "packages/backend/src/index.js",
-            "use": "@vercel/node"
-        },
-        {
-            "src": "packages/frontend/src/index.html",
-            "use": "@vercel/static"
+            "source": "/api/(.*)",
+            "destination": "/api"
         }
-    ],
-    "routes": [
-        {
-            "src": "/graphql",
-            "dest": "packages/backend/src/index.js"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "packages/frontend/src/index.html"
-        }
-    ],
-    "outputDirectory": "."
+    ]
 }

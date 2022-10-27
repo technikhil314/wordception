@@ -1,4 +1,5 @@
 type Book {
   title: String
   author: String
+  date: String
 }

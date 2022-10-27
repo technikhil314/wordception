@@ -1,3 +1,3 @@
 export default function someFunc(): string {
-  return 'SomeVal1';
+	return 'SomeVal11';
 }

@@ -3,16 +3,16 @@
         "rootDirs": [
             "src"
         ],
+        "outDir": "../../api",
         "lib": [
             "es2020"
         ],
-        "target": "es2020",
+        "target": "ES5",
         "module": "CommonJS",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "types": [
             "node"
-        ],
-        "watch": true
+        ]
     }
 }

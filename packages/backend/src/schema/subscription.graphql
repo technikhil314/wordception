@@ -1,0 +1,4 @@
+type Subscription {
+    bookCreated: Book
+    hello: Hello
+}

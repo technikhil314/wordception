@@ -8,28 +8,24 @@ import express from 'express';
 import { PubSub } from 'graphql-subscriptions';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
 import Pusher from 'pusher';
+import { WebSocketServer } from 'ws';
 import someFunc from './demo';
 const app = express();
 const httpServer = createServer(app);
 
 const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
-  },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
-  },
+	{
+		title: 'The Awakening',
+		author: 'Kate Chopin',
+		date: '27 Oct 2022'
+	},
+	{
+		title: 'City of Glass',
+		author: 'Paul Auster',
+		date: '27 Oct 2022 16:50'
+	}
 ];
-
-// const file = loadFilesSync(path.join(__dirname, "./**/*.graphql"));
-// console.log({ file });
-// // Resolvers define how to fetch the types defined in your schema.
-// // This resolver retrieves books from the "books" array above.
-// const typeDefs = mergeTypeDefs([...file]);
 
 const typeDefs = `#graphql
   # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
@@ -38,6 +34,7 @@ const typeDefs = `#graphql
   type Book {
     title: String
     author: String
+    date: String
   }
 
   # The "Query" type is special: it lists all of the available queries that
@@ -70,92 +67,89 @@ const typeDefs = `#graphql
 const pubsub = new PubSub();
 
 const resolvers = {
-  Query: {
-    books: () => books,
-  },
-  Subscription: {
-    hello: {
-      // Example using an async generator
-      subscribe: async function* () {
-        for await (const word of ['Hello', 'Bonjour', 'Ciao']) {
-          yield { hello: word };
-        }
-      },
-    },
-    bookCreated: {
-      // More on pubsub below
-      subscribe: () => pubsub.asyncIterator(['BOOK_CREATED']),
-    },
-  },
-  Mutation: {
-    createBook(_, args) {
-      console.log(someFunc());
-      pubsub.publish('BOOK_CREATED', { bookCreated: args });
-      const pusher = new Pusher({
-        appId: '1497541',
-        key: '98c43f24ae31d3ccb385',
-        secret: '4c3a0856625ba1989fc2',
-        cluster: 'ap2',
-        useTLS: true,
-      });
+	Query: {
+		books: () => books
+	},
+	Subscription: {
+		hello: {
+			// Example using an async generator
+			subscribe: async function* () {
+				for await (const word of ['Hello', 'Bonjour', 'Ciao']) {
+					yield { hello: word };
+				}
+			}
+		},
+		bookCreated: {
+			// More on pubsub below
+			subscribe: () => pubsub.asyncIterator(['BOOK_CREATED'])
+		}
+	},
+	Mutation: {
+		createBook(_, args) {
+			console.log(someFunc());
+			pubsub.publish('BOOK_CREATED', { bookCreated: args });
+			const pusher = new Pusher({
+				appId: '1497541',
+				key: '98c43f24ae31d3ccb385',
+				secret: '4c3a0856625ba1989fc2',
+				cluster: 'ap2',
+				useTLS: true
+			});
 
-      pusher.trigger('my-channel', 'my-event', args);
-      // Datastore logic lives in postController
-      return { ...args };
-    },
-  },
+			pusher.trigger('my-channel', 'my-event', args);
+			// Datastore logic lives in postController
+			return { ...args };
+		}
+	}
 };
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const wsServer = new WebSocketServer({
-  server: httpServer,
-  path: '/',
+	server: httpServer,
+	path: '/'
 });
 const serverCleanup = useServer(
-  {
-    schema,
-    onConnect: async (ctx) => {
-      console.log('Connected!');
-    },
-    onDisconnect(ctx, code, reason) {
-      console.log(`Disconnected! ${reason} ${code}`);
-    },
-  },
-  wsServer
+	{
+		schema,
+		onConnect: async () => {
+			console.log('Connected!');
+		},
+		onDisconnect(_, code, reason) {
+			console.log(`Disconnected! ${reason} ${code}`);
+		}
+	},
+	wsServer
 );
 
 // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
 const server = new ApolloServer({
-  schema,
-  introspection: true,
-  plugins: [
-    ApolloServerPluginLandingPageLocalDefault({ footer: false }),
-    ApolloServerPluginDrainHttpServer({ httpServer }),
+	schema,
+	introspection: true,
+	plugins: [
+		ApolloServerPluginLandingPageLocalDefault({ footer: false }),
+		ApolloServerPluginDrainHttpServer({ httpServer }),
 
-    // Proper shutdown for the WebSocket server.
-    {
-      async serverWillStart() {
-        return {
-          async drainServer() {
-            await serverCleanup.dispose();
-          },
-        };
-      },
-    },
-  ],
+		// Proper shutdown for the WebSocket server.
+		{
+			async serverWillStart() {
+				return {
+					async drainServer() {
+						await serverCleanup.dispose();
+					}
+				};
+			}
+		}
+	]
 });
 
 // Passing an ApolloServer instance to the `startStandaloneServer` function:
 //  1. creates an Express app
 //  2. installs your ApolloServer instance as middleware
 //  3. prepares your app to handle incoming requests
-
 server.start().then(() => {
-  app.use('/', bodyParser.json(), expressMiddleware(server));
-  const PORT = 4000;
-  httpServer.listen(PORT, () => {
-    console.log(`Server is now running on http://localhost:${PORT}/graphql`);
-  });
+	app.use('/', bodyParser.json(), expressMiddleware(server));
 });
+
+export default httpServer;

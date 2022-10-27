@@ -2,11 +2,12 @@
 
 # compiled output
 dist
+public/
 tmp
 /out-tsc
 **/src/**/*.js
-api
-public
+api/
+public/
 # dependencies
 node_modules
 
