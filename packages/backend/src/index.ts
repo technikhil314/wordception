@@ -9,6 +9,15 @@ import { createServer } from 'http';
 import Pusher from 'pusher';
 import typeDefs from './schema/gql';
 
+if (
+	!process.env.PUSHER_APP_ID ||
+	!process.env.PUSHER_KEY ||
+	!process.env.PUSHER_SECRET ||
+	!process.env.PUSHER_CLUSTER
+) {
+	throw new Error('Please set pusher environment variables');
+}
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -32,15 +41,14 @@ const resolvers = {
 	Mutation: {
 		createBook(_, args) {
 			const pusher = new Pusher({
-				appId: '1497541',
-				key: '98c43f24ae31d3ccb385',
-				secret: '4c3a0856625ba1989fc2',
-				cluster: 'ap2',
+				appId: process.env.PUSHER_APP_ID,
+				key: process.env.PUSHER_KEY,
+				secret: process.env.PUSHER_SECRET,
+				cluster: process.env.PUSHER_CLUSTER,
 				useTLS: true
 			});
 
 			pusher.trigger('my-channel', 'my-event', args);
-			// Datastore logic lives in postController
 			return { ...args };
 		}
 	}
@@ -48,8 +56,6 @@ const resolvers = {
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-// The ApolloServer constructor requires two parameters: your schema
-// definition and your set of resolvers.
 const server = new ApolloServer({
 	schema,
 	introspection: true,
@@ -59,10 +65,6 @@ const server = new ApolloServer({
 	]
 });
 
-// Passing an ApolloServer instance to the `startStandaloneServer` function:
-//  1. creates an Express app
-//  2. installs your ApolloServer instance as middleware
-//  3. prepares your app to handle incoming requests
 server.start().then(() => {
 	app.use('/', bodyParser.json(), expressMiddleware(server));
 });
