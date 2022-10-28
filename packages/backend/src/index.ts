@@ -6,9 +6,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import bodyParser from 'body-parser';
 import express from 'express';
 import { createServer } from 'http';
-import Pusher from 'pusher';
 import typeDefs from './schema/gql';
-
+import { queryResolvers, mutationResolvers } from './resolvers';
 if (
 	!process.env.PUSHER_APP_ID ||
 	!process.env.PUSHER_KEY ||
@@ -21,37 +20,9 @@ if (
 const app = express();
 const httpServer = createServer(app);
 
-const books = [
-	{
-		title: 'The Awakening',
-		author: 'Kate Chopin',
-		date: '27 Oct 2022'
-	},
-	{
-		title: 'City of Glass',
-		author: 'Paul Auster',
-		date: '27 Oct 2022 16:50'
-	}
-];
-
 const resolvers = {
-	Query: {
-		books: () => books
-	},
-	Mutation: {
-		createBook(_, args) {
-			const pusher = new Pusher({
-				appId: process.env.PUSHER_APP_ID,
-				key: process.env.PUSHER_KEY,
-				secret: process.env.PUSHER_SECRET,
-				cluster: process.env.PUSHER_CLUSTER,
-				useTLS: true
-			});
-
-			pusher.trigger('my-channel', 'my-event', args);
-			return { ...args };
-		}
-	}
+	Query: queryResolvers,
+	Mutation: mutationResolvers
 };
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
