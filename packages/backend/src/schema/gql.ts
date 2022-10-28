@@ -9,17 +9,6 @@ type Hello {
   hello: String
 }
 
-subscription BookFeed {
-  bookCreated {
-    author
-    title
-  }
-}
-
-type Subscription {
-  bookCreated: Book
-  hello: Hello
-}
 type Query {
   books: [Book]
 }

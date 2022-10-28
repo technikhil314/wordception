@@ -5,11 +5,8 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import bodyParser from 'body-parser';
 import express from 'express';
-import { PubSub } from 'graphql-subscriptions';
-import { useServer } from 'graphql-ws/lib/use/ws';
 import { createServer } from 'http';
 import Pusher from 'pusher';
-import { WebSocketServer } from 'ws';
 import typeDefs from './schema/gql';
 
 const app = express();
@@ -28,29 +25,12 @@ const books = [
 	}
 ];
 
-const pubsub = new PubSub();
-
 const resolvers = {
 	Query: {
 		books: () => books
 	},
-	Subscription: {
-		hello: {
-			// Example using an async generator
-			subscribe: async function* () {
-				for await (const word of ['Hello', 'Bonjour', 'Ciao']) {
-					yield { hello: word };
-				}
-			}
-		},
-		bookCreated: {
-			// More on pubsub below
-			subscribe: () => pubsub.asyncIterator(['BOOK_CREATED'])
-		}
-	},
 	Mutation: {
 		createBook(_, args) {
-			pubsub.publish('BOOK_CREATED', { bookCreated: args });
 			const pusher = new Pusher({
 				appId: '1497541',
 				key: '98c43f24ae31d3ccb385',
@@ -68,23 +48,6 @@ const resolvers = {
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-const wsServer = new WebSocketServer({
-	server: httpServer,
-	path: '/'
-});
-const serverCleanup = useServer(
-	{
-		schema,
-		onConnect: async () => {
-			console.log('Connected!');
-		},
-		onDisconnect(_, code, reason) {
-			console.log(`Disconnected! ${reason} ${code}`);
-		}
-	},
-	wsServer
-);
-
 // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
 const server = new ApolloServer({
@@ -92,18 +55,7 @@ const server = new ApolloServer({
 	introspection: true,
 	plugins: [
 		ApolloServerPluginLandingPageLocalDefault({ footer: false }),
-		ApolloServerPluginDrainHttpServer({ httpServer }),
-
-		// Proper shutdown for the WebSocket server.
-		{
-			async serverWillStart() {
-				return {
-					async drainServer() {
-						await serverCleanup.dispose();
-					}
-				};
-			}
-		}
+		ApolloServerPluginDrainHttpServer({ httpServer })
 	]
 });
 
