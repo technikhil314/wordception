@@ -5,7 +5,7 @@
   "scripts": {
     "prepare": "husky install",
     "deploy": "vercel build && vercel",
-    "build": "rimraf api && rimraf public && nx run backend:build && nx run frontend:build",
+    "build": "rimraf api && rimraf public && nx run-many --target build",
     "start": "nx run-many --target dev"
   },
   "private": true,

@@ -10,7 +10,8 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { createServer } from 'http';
 import Pusher from 'pusher';
 import { WebSocketServer } from 'ws';
-import someFunc from './demo';
+import typeDefs from './schema/gql';
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -26,43 +27,6 @@ const books = [
 		date: '27 Oct 2022 16:50'
 	}
 ];
-
-const typeDefs = `#graphql
-  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
-  # This "Book" type defines the queryable fields for every book in our data source.
-  type Book {
-    title: String
-    author: String
-    date: String
-  }
-
-  # The "Query" type is special: it lists all of the available queries that
-  # clients can execute, along with the return type for each. In this
-  # case, the "books" query returns an array of zero or more Books (defined above).
-  type Query {
-    books: [Book]
-  }
-
-  type Mutation {
-    createBook(author: String, title: String): Book
-  }
-
-  type Hello {
-    hello: String
-  }
-
-  type Subscription {
-    bookCreated: Book
-    hello: Hello
-  }
-  subscription BookFeed {
-    bookCreated {
-      author
-      title
-    }
-  }
-`;
 
 const pubsub = new PubSub();
 
@@ -86,7 +50,6 @@ const resolvers = {
 	},
 	Mutation: {
 		createBook(_, args) {
-			console.log(someFunc());
 			pubsub.publish('BOOK_CREATED', { bookCreated: args });
 			const pusher = new Pusher({
 				appId: '1497541',

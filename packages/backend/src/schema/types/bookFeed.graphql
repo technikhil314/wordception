@@ -1,6 +1,0 @@
-subscription BookFeed {
-    bookCreated {
-        author
-        title
-    }
-}
